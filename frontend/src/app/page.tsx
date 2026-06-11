@@ -12,12 +12,12 @@ export default function DashboardPage() {
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [signals, setSignals] = useState<Signal[]>([]);
-  const [equityCurve, setEquityCurve] = useState<unknown[]>([]);
+  const [equityCurve, setEquityCurve] = useState<Record<string, unknown>[]>([]);
   const [health, setHealth] = useState<Record<string, unknown>>({});
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    api.signals(10).then((d) => setSignals(d as Signal[])).catch(() => {});
+    api.signals(10).then(setSignals).catch(() => {});
     api.equityCurve().then(setEquityCurve).catch(() => {});
     api.health().then(setHealth).catch(() => {});
 
@@ -76,7 +76,7 @@ export default function DashboardPage() {
           </div>
           {equityCurve.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={equityCurve as { equity: number; time: string }[]}>
+              <AreaChart data={equityCurve}>
                 <defs>
                   <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#00D4FF" stopOpacity={0.3} />

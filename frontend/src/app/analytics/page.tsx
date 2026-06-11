@@ -10,9 +10,9 @@ import {
 const COLORS = ["#00D4FF", "#00FF88", "#FF4466", "#FFB800", "#8B5CF6", "#F97316"];
 
 export default function AnalyticsPage() {
-  const [equity, setEquity] = useState<unknown[]>([]);
+  const [equity, setEquity] = useState<Record<string, unknown>[]>([]);
   const [summary, setSummary] = useState<Record<string, unknown>>({});
-  const [byStrategy, setByStrategy] = useState<unknown[]>([]);
+  const [byStrategy, setByStrategy] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     api.equityCurve().then(setEquity).catch(() => {});
@@ -41,7 +41,7 @@ export default function AnalyticsPage() {
         <div className="card card-glow">
           <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#6B7A9A", marginBottom: 16 }}>COURBE EQUITY</div>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={equity as { equity: number }[]}>
+            <AreaChart data={equity}>
               <defs>
                 <linearGradient id="eg2" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#00D4FF" stopOpacity={0.3} />
@@ -72,7 +72,7 @@ export default function AnalyticsPage() {
       <div className="card">
         <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "#6B7A9A", marginBottom: 16 }}>PAR STRATÉGIE</div>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={byStrategy as { strategy_id: number; profit: number; trades: number }[]}>
+          <BarChart data={byStrategy}>
             <XAxis dataKey="strategy_id" stroke="#6B7A9A" />
             <YAxis stroke="#6B7A9A" />
             <Tooltip contentStyle={{ background: "#0D1421", border: "1px solid #1A2540", borderRadius: 8 }} />

@@ -1,5 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
+type Row = Record<string, unknown>;
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: "include",
@@ -20,87 +22,87 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 export const api = {
   // Auth
   login: (email: string, password: string) =>
-    apiFetch("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
-  logout: () => apiFetch("/api/auth/logout", { method: "POST" }),
+    apiFetch<Row>("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  logout: () => apiFetch<Row>("/api/auth/logout", { method: "POST" }),
   me: () => apiFetch<{ email: string; role: string }>("/api/auth/me"),
 
   // Health
   health: () => apiFetch<{ status: string; mt5_connector: boolean }>("/api/health"),
 
   // MT5
-  mt5Account: () => apiFetch<Record<string, unknown>>("/api/mt5/account"),
-  mt5Positions: () => apiFetch<unknown[]>("/api/mt5/positions"),
+  mt5Account: () => apiFetch<Row>("/api/mt5/account"),
+  mt5Positions: () => apiFetch<Row[]>("/api/mt5/positions"),
   mt5Price: (symbol: string) => apiFetch<{ bid: number; ask: number }>(`/api/mt5/price/${symbol}`),
   mt5OHLCV: (symbol: string, timeframe = "H1", count = 100) =>
-    apiFetch<unknown[]>(`/api/mt5/ohlcv/${symbol}?timeframe=${timeframe}&count=${count}`),
+    apiFetch<Row[]>(`/api/mt5/ohlcv/${symbol}?timeframe=${timeframe}&count=${count}`),
 
   // Trades
   tradeHistory: (limit = 100, offset = 0) =>
-    apiFetch<unknown[]>(`/api/trades/history?limit=${limit}&offset=${offset}`),
-  positions: () => apiFetch<unknown[]>("/api/trades/positions"),
-  mt5History: (days = 7) => apiFetch<unknown[]>(`/api/trades/mt5-history?days=${days}`),
+    apiFetch<Row[]>(`/api/trades/history?limit=${limit}&offset=${offset}`),
+  positions: () => apiFetch<Row[]>("/api/trades/positions"),
+  mt5History: (days = 7) => apiFetch<Row[]>(`/api/trades/mt5-history?days=${days}`),
   closeTrade: (ticket: string, lot?: number) =>
-    apiFetch("/api/trades/close", { method: "POST", body: JSON.stringify({ ticket, lot }) }),
+    apiFetch<Row>("/api/trades/close", { method: "POST", body: JSON.stringify({ ticket, lot }) }),
 
   // Signals
-  signals: (limit = 50) => apiFetch<unknown[]>(`/api/signals/?limit=${limit}`),
+  signals: (limit = 50) => apiFetch<Row[]>(`/api/signals/?limit=${limit}`),
 
   // Strategies
-  strategies: () => apiFetch<unknown[]>("/api/strategies/"),
+  strategies: () => apiFetch<Row[]>("/api/strategies/"),
   createStrategy: (data: unknown) =>
-    apiFetch("/api/strategies/", { method: "POST", body: JSON.stringify(data) }),
+    apiFetch<Row>("/api/strategies/", { method: "POST", body: JSON.stringify(data) }),
   updateStrategy: (id: number, data: unknown) =>
-    apiFetch(`/api/strategies/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    apiFetch<Row>(`/api/strategies/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteStrategy: (id: number) =>
-    apiFetch(`/api/strategies/${id}`, { method: "DELETE" }),
+    apiFetch<Row>(`/api/strategies/${id}`, { method: "DELETE" }),
 
   // Performance
-  performanceSummary: () => apiFetch<Record<string, unknown>>("/api/performance/summary"),
-  performanceByStrategy: () => apiFetch<unknown[]>("/api/performance/by-strategy"),
-  equityCurve: () => apiFetch<unknown[]>("/api/performance/equity-curve"),
+  performanceSummary: () => apiFetch<Row>("/api/performance/summary"),
+  performanceByStrategy: () => apiFetch<Row[]>("/api/performance/by-strategy"),
+  equityCurve: () => apiFetch<Row[]>("/api/performance/equity-curve"),
 
   // Accounts
-  accounts: () => apiFetch<unknown[]>("/api/accounts/"),
+  accounts: () => apiFetch<Row[]>("/api/accounts/"),
   createAccount: (data: unknown) =>
-    apiFetch("/api/accounts/", { method: "POST", body: JSON.stringify(data) }),
+    apiFetch<Row>("/api/accounts/", { method: "POST", body: JSON.stringify(data) }),
   updateAccount: (id: number, data: unknown) =>
-    apiFetch(`/api/accounts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    apiFetch<Row>(`/api/accounts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteAccount: (id: number) =>
-    apiFetch(`/api/accounts/${id}`, { method: "DELETE" }),
+    apiFetch<Row>(`/api/accounts/${id}`, { method: "DELETE" }),
 
   // Trading plan
-  tradingPlan: () => apiFetch<Record<string, unknown>>("/api/trading-plan/"),
+  tradingPlan: () => apiFetch<Row>("/api/trading-plan/"),
   updateTradingPlan: (data: unknown) =>
-    apiFetch("/api/trading-plan/", { method: "PUT", body: JSON.stringify(data) }),
+    apiFetch<Row>("/api/trading-plan/", { method: "PUT", body: JSON.stringify(data) }),
 
   // Symbol rules
-  symbolRules: () => apiFetch<unknown[]>("/api/symbol-rules/"),
+  symbolRules: () => apiFetch<Row[]>("/api/symbol-rules/"),
   createSymbolRule: (data: unknown) =>
-    apiFetch("/api/symbol-rules/", { method: "POST", body: JSON.stringify(data) }),
+    apiFetch<Row>("/api/symbol-rules/", { method: "POST", body: JSON.stringify(data) }),
   updateSymbolRule: (id: number, data: unknown) =>
-    apiFetch(`/api/symbol-rules/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    apiFetch<Row>(`/api/symbol-rules/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteSymbolRule: (id: number) =>
-    apiFetch(`/api/symbol-rules/${id}`, { method: "DELETE" }),
+    apiFetch<Row>(`/api/symbol-rules/${id}`, { method: "DELETE" }),
   testSymbol: (symbol: string) =>
-    apiFetch("/api/symbol-rules/test", { method: "POST", body: JSON.stringify({ symbol }) }),
-  seedRules: () => apiFetch("/api/symbol-rules/seed", { method: "POST" }),
+    apiFetch<Row>("/api/symbol-rules/test", { method: "POST", body: JSON.stringify({ symbol }) }),
+  seedRules: () => apiFetch<Row>("/api/symbol-rules/seed", { method: "POST" }),
 
   // Webhook logs
-  webhookLogs: (limit = 100) => apiFetch<unknown[]>(`/api/webhook-logs/?limit=${limit}`),
-  clearWebhookLogs: () => apiFetch("/api/webhook-logs/", { method: "DELETE" }),
+  webhookLogs: (limit = 100) => apiFetch<Row[]>(`/api/webhook-logs/?limit=${limit}`),
+  clearWebhookLogs: () => apiFetch<Row>("/api/webhook-logs/", { method: "DELETE" }),
 
   // Debug
-  debugStatus: () => apiFetch<Record<string, unknown>>("/api/debug/status"),
+  debugStatus: () => apiFetch<Row>("/api/debug/status"),
   debugLogs: (service: string, lines = 50) =>
     apiFetch<{ lines: string[] }>(`/api/debug/logs/${service}?lines=${lines}`),
   testWebhook: (data: unknown) =>
-    apiFetch("/api/debug/test-webhook", { method: "POST", body: JSON.stringify(data) }),
+    apiFetch<Row>("/api/debug/test-webhook", { method: "POST", body: JSON.stringify(data) }),
 
   // Telegram
   sendTelegram: (message: string) =>
-    apiFetch("/api/telegram/send", { method: "POST", body: JSON.stringify({ message }) }),
+    apiFetch<Row>("/api/telegram/send", { method: "POST", body: JSON.stringify({ message }) }),
 
   // Orders
   placeOrder: (data: unknown) =>
-    apiFetch("/api/orders/", { method: "POST", body: JSON.stringify(data) }),
+    apiFetch<Row>("/api/orders/", { method: "POST", body: JSON.stringify(data) }),
 };
