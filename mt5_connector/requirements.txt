@@ -1,0 +1,6 @@
+MetaTrader5>=5.0.4774
+httpx>=0.27
+python-dotenv>=1.0
+psutil>=5.9
+uvicorn[standard]>=0.30
+fastapi>=0.115
