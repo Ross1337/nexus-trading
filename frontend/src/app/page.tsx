@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    api.signals(10).then(setSignals).catch(() => {});
+    api.signals(10).then((d) => setSignals(d as Signal[])).catch(() => {});
     api.equityCurve().then(setEquityCurve).catch(() => {});
     api.health().then(setHealth).catch(() => {});
 
