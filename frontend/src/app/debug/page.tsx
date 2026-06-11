@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 export default function DebugPage() {
   const [status, setStatus] = useState<Record<string, unknown>>({});
   const [logs, setLogs] = useState<{ [k: string]: string[] }>({});
-  const [testResult, setTestResult] = useState<unknown>(null);
+  const [testResult, setTestResult] = useState<Record<string, unknown> | null>(null);
   const [activeLog, setActiveLog] = useState("api");
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function DebugPage() {
   }
 
   async function runTestWebhook() {
-    const r = await api.testWebhook({ symbol: "EURUSD", action: "buy", lot: 0.01, sl: 1.08, tp: 1.09 });
+    const r = await api.testWebhook({ symbol: "EURUSD", action: "buy", lot: 0.01, sl: 1.08, tp: 1.09 }) as Record<string, unknown>;
     setTestResult(r);
   }
 
