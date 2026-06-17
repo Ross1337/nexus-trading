@@ -29,12 +29,8 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   });
 
   if (res.status === 401) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      window.dispatchEvent(new Event('auth:expired'));
-    }
-    throw new Error('Session expiree');
+    // Auth disabled — log it but don't redirect.
+    throw new Error(`API error 401: ${await res.text()}`);
   }
 
   if (!res.ok) {

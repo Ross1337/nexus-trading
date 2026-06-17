@@ -32,6 +32,13 @@ def decode_token(token: str) -> dict:
 
 
 async def get_current_user(access_token: str = Cookie(default=None)) -> dict:
+    """Auth disabled — always return a synthetic admin user.
+
+    Set NEXUS_AUTH_DISABLED=0 in .env to re-enable real cookie auth.
+    """
+    import os
+    if os.getenv("NEXUS_AUTH_DISABLED", "1") == "1":
+        return {"sub": "admin@nexus.local", "role": "admin"}
     if not access_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     return decode_token(access_token)
