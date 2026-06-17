@@ -1,93 +1,88 @@
 "use client";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import clsx from "clsx";
 
-const NAV = [
-  { href: "/", label: "Dashboard", icon: "⬡" },
-  { href: "/trades", label: "Trades", icon: "◈" },
-  { href: "/strategies", label: "Stratégies", icon: "◇" },
-  { href: "/analytics", label: "Analytics", icon: "◉" },
-  { href: "/trading-plan", label: "Plan Trading", icon: "◫" },
-  { href: "/webhook-logs", label: "Webhooks", icon: "◎" },
-  { href: "/symbol-rules", label: "Symboles", icon: "◊" },
-  { href: "/test-symbols", label: "Test Symboles", icon: "◬" },
-  { href: "/telegram", label: "Telegram", icon: "◐" },
-  { href: "/debug", label: "Debug", icon: "◑" },
-  { href: "/settings", label: "Paramètres", icon: "◒" },
+import Link from "next/link";
+import { logout } from "@/lib/api";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  Brain,
+  History,
+  Activity,
+  Cog,
+  Bug,
+  Webhook,
+  Beaker,
+  Settings2,
+  LogOut,
+} from "lucide-react";
+
+const navItems = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/strategies", label: "Strategies", icon: Brain },
+  { href: "/trades", label: "Trades", icon: History },
+  { href: "/webhook-logs", label: "Webhook Logs", icon: Webhook },
+  { href: "/symbol-rules", label: "Regles symboles", icon: Settings2 },
+  { href: "/test-symbols", label: "Test Symboles", icon: Beaker },
+  { href: "/debug", label: "Debug", icon: Bug },
+  { href: "/settings", label: "Parametres", icon: Cog },
 ];
 
-export default function Sidebar() {
-  const path = usePathname();
+export function Sidebar() {
+  const pathname = usePathname();
+
   return (
-    <aside
-      style={{
-        width: 220,
-        minHeight: "100vh",
-        background: "#080D18",
-        borderRight: "1px solid #1A2540",
-        display: "flex",
-        flexDirection: "column",
-        padding: "0",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        zIndex: 100,
-      }}
-    >
-      <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid #1A2540" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: "linear-gradient(135deg, #00D4FF, #0066FF)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 16,
-              fontWeight: 700,
-              color: "#fff",
-            }}
-          >
-            N
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#E8EDF5" }}>NEXUS</div>
-            <div style={{ fontSize: "0.7rem", color: "#6B7A9A" }}>Trading Bot V2</div>
-          </div>
+    <aside className="flex w-64 flex-col border-r border-border bg-card">
+      {/* Logo */}
+      <div className="flex items-center gap-3 border-b border-border px-6 py-5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+          <Activity className="h-5 w-5 text-primary-foreground" />
+        </div>
+        <div>
+          <h1 className="text-sm font-bold">Trading Bot</h1>
+          <p className="text-xs text-muted-foreground">Dashboard</p>
         </div>
       </div>
-      <nav style={{ flex: 1, padding: "8px 0" }}>
-        {NAV.map((item) => {
-          const active = path === item.href || (item.href !== "/" && path.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 20px",
-                color: active ? "#00D4FF" : "#6B7A9A",
-                textDecoration: "none",
-                fontSize: "0.875rem",
-                fontWeight: active ? 600 : 400,
-                background: active ? "rgba(0,212,255,0.07)" : "transparent",
-                borderRight: active ? "2px solid #00D4FF" : "2px solid transparent",
-                transition: "all 0.15s",
-              }}
-            >
-              <span style={{ fontSize: "1rem", width: 20, textAlign: "center" }}>{item.icon}</span>
-              {item.label}
-            </Link>
-          );
-        })}
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <ul className="space-y-1">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            const Icon = item.icon;
+
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                    isActive
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
-      <div style={{ padding: "16px 20px", borderTop: "1px solid #1A2540" }}>
-        <div style={{ fontSize: "0.7rem", color: "#6B7A9A" }}>Port API: 8001 | MT5: 5002</div>
+
+      {/* Status */}
+      <div className="border-t border-border px-4 py-4">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
+          </span>
+          <span className="text-xs text-muted-foreground">Bot actif</span>
+        </div>
       </div>
     </aside>
   );

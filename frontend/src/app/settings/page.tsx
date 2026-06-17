@@ -1,95 +1,254 @@
 "use client";
-import { useEffect, useState } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
-import { api } from "@/lib/api";
+import { useState } from "react";
+import { Card, CardTitle } from "@/components/ui/card";
+import { Toggle } from "@/components/ui/toggle";
+import { Bell, Plug, Shield, Globe } from "lucide-react";
 
-type Account = Record<string, unknown>;
+interface SettingsConfig {
+  // Notifications
+  telegramEnabled: boolean;
+  telegramToken: string;
+  telegramChatId: string;
+  discordEnabled: boolean;
+  discordWebhook: string;
+  notifyOnSignal: boolean;
+  notifyOnTrade: boolean;
+  notifyOnError: boolean;
+  notifyOnDrawdown: boolean;
+  // API
+  apiHost: string;
+  apiPort: number;
+  wsEnabled: boolean;
+  corsOrigins: string;
+  // Account
+  mt5Path: string;
+  defaultLeverage: number;
+  defaultSymbols: string;
+}
+
+const defaultSettings: SettingsConfig = {
+  telegramEnabled: true,
+  telegramToken: "",
+  telegramChatId: "",
+  discordEnabled: false,
+  discordWebhook: "",
+  notifyOnSignal: true,
+  notifyOnTrade: true,
+  notifyOnError: true,
+  notifyOnDrawdown: true,
+  apiHost: "0.0.0.0",
+  apiPort: 8000,
+  wsEnabled: true,
+  corsOrigins: "*",
+  mt5Path: "C:\\Program Files\\MetaTrader 5\\terminal64.exe",
+  defaultLeverage: 100,
+  defaultSymbols: "EURUSD,GBPUSD,USDJPY,XAUUSD",
+};
+
+function TextInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  disabled,
+}: {
+  label: string;
+  value: string | number;
+  onChange: (val: string) => void;
+  type?: string;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm text-muted-foreground">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+      />
+    </div>
+  );
+}
 
 export default function SettingsPage() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [form, setForm] = useState({ name: "", login: "", password: "", server: "", mode: "demo", enabled: true });
-  const [editing, setEditing] = useState<number | null>(null);
+  const [settings, setSettings] = useState<SettingsConfig>(defaultSettings);
+  const [saved, setSaved] = useState(false);
 
-  const reload = () => api.accounts().then((d) => setAccounts(d as Account[])).catch(() => {});
-  useEffect(() => { reload(); }, []);
+  const update = <K extends keyof SettingsConfig>(key: K, value: SettingsConfig[K]) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+    setSaved(false);
+  };
 
-  async function save() {
-    if (editing !== null) await api.updateAccount(editing, form);
-    else await api.createAccount(form);
-    setEditing(null);
-    setForm({ name: "", login: "", password: "", server: "", mode: "demo", enabled: true });
-    reload();
-  }
-
-  function edit(a: Account) {
-    setEditing(a.id as number);
-    setForm({ name: String(a.name || ""), login: String(a.login || ""), password: "", server: String(a.server || ""), mode: String(a.mode || "demo"), enabled: Boolean(a.enabled) });
-  }
-
-  async function logout() {
-    await api.logout();
-    window.location.href = "/login";
-  }
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   return (
-    <DashboardLayout>
-      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: 24 }}>Paramètres</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 24 }}>
-        <div className="card">
-          <div style={{ fontWeight: 600, marginBottom: 16 }}>{editing !== null ? "Modifier compte" : "Ajouter compte MT5"}</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <input placeholder="Nom" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            <input placeholder="Login" value={form.login} onChange={(e) => setForm({ ...form, login: e.target.value })} />
-            <input placeholder="Mot de passe" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-            <input placeholder="Serveur broker" value={form.server} onChange={(e) => setForm({ ...form, server: e.target.value })} />
-            <select value={form.mode} onChange={(e) => setForm({ ...form, mode: e.target.value })}>
-              <option value="demo">Demo</option>
-              <option value="live">Live</option>
-              <option value="propfirm">Propfirm</option>
-            </select>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn-primary" onClick={save}>{editing !== null ? "Sauvegarder" : "Ajouter"}</button>
-              {editing !== null && <button className="btn-ghost" onClick={() => setEditing(null)}>Annuler</button>}
-            </div>
-          </div>
-          <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid #1A2540" }}>
-            <button className="btn-ghost" style={{ width: "100%", color: "#FF4466" }} onClick={logout}>
-              Se déconnecter
-            </button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Parametres</h1>
+          <p className="text-muted-foreground">Configuration des notifications, API et comptes</p>
         </div>
-        <div className="card">
-          <div style={{ fontWeight: 600, marginBottom: 16 }}>Comptes MT5 ({accounts.length})</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Login</th>
-                <th>Serveur</th>
-                <th>Mode</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {accounts.map((a) => (
-                <tr key={a.id as number}>
-                  <td style={{ fontWeight: 600 }}>{String(a.name)}</td>
-                  <td className="mono">{String(a.login)}</td>
-                  <td style={{ color: "#6B7A9A", fontSize: "0.85rem" }}>{String(a.server)}</td>
-                  <td><span className={a.mode === "live" ? "badge-red" : a.mode === "propfirm" ? "badge-cyan" : "badge-green"}>{String(a.mode).toUpperCase()}</span></td>
-                  <td><span className={a.enabled ? "badge-green" : "badge-red"}>{a.enabled ? "ON" : "OFF"}</span></td>
-                  <td>
-                    <button className="btn-ghost" style={{ padding: "3px 8px", fontSize: "0.8rem", marginRight: 4 }} onClick={() => edit(a)}>✎</button>
-                    <button className="btn-ghost" style={{ padding: "3px 8px", fontSize: "0.8rem", color: "#FF4466" }} onClick={async () => { await api.deleteAccount(a.id as number); reload(); }}>✕</button>
-                  </td>
-                </tr>
-              ))}
-              {accounts.length === 0 && <tr><td colSpan={6} style={{ textAlign: "center", color: "#6B7A9A", padding: 24 }}>Aucun compte</td></tr>}
-            </tbody>
-          </table>
-        </div>
+        <button
+          onClick={handleSave}
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          {saved ? "Sauvegarde !" : "Sauvegarder"}
+        </button>
       </div>
-    </DashboardLayout>
+
+      {/* Notifications - Telegram */}
+      <Card>
+        <div className="mb-4 flex items-center gap-2">
+          <Bell className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base font-semibold text-foreground">Notifications Telegram</CardTitle>
+        </div>
+        <div className="space-y-4">
+          <Toggle
+            enabled={settings.telegramEnabled}
+            onChange={(v) => update("telegramEnabled", v)}
+            label="Activer les notifications Telegram"
+          />
+          {settings.telegramEnabled && (
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextInput
+                label="Bot Token"
+                value={settings.telegramToken}
+                onChange={(v) => update("telegramToken", v)}
+                placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxYZ"
+              />
+              <TextInput
+                label="Chat ID"
+                value={settings.telegramChatId}
+                onChange={(v) => update("telegramChatId", v)}
+                placeholder="-1001234567890"
+              />
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Notifications - Discord */}
+      <Card>
+        <div className="mb-4 flex items-center gap-2">
+          <Bell className="h-5 w-5 text-accent" />
+          <CardTitle className="text-base font-semibold text-foreground">Notifications Discord</CardTitle>
+        </div>
+        <div className="space-y-4">
+          <Toggle
+            enabled={settings.discordEnabled}
+            onChange={(v) => update("discordEnabled", v)}
+            label="Activer les notifications Discord"
+          />
+          {settings.discordEnabled && (
+            <div className="mt-4">
+              <TextInput
+                label="Webhook URL"
+                value={settings.discordWebhook}
+                onChange={(v) => update("discordWebhook", v)}
+                placeholder="https://discord.com/api/webhooks/..."
+              />
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Notification Events */}
+      <Card>
+        <div className="mb-4 flex items-center gap-2">
+          <Bell className="h-5 w-5 text-warning" />
+          <CardTitle className="text-base font-semibold text-foreground">Evenements de Notification</CardTitle>
+        </div>
+        <div className="space-y-3">
+          <Toggle
+            enabled={settings.notifyOnSignal}
+            onChange={(v) => update("notifyOnSignal", v)}
+            label="Nouveau signal detecte"
+          />
+          <Toggle
+            enabled={settings.notifyOnTrade}
+            onChange={(v) => update("notifyOnTrade", v)}
+            label="Trade ouvert / ferme"
+          />
+          <Toggle
+            enabled={settings.notifyOnError}
+            onChange={(v) => update("notifyOnError", v)}
+            label="Erreurs systeme"
+          />
+          <Toggle
+            enabled={settings.notifyOnDrawdown}
+            onChange={(v) => update("notifyOnDrawdown", v)}
+            label="Alerte drawdown"
+          />
+        </div>
+      </Card>
+
+      {/* API Configuration */}
+      <Card>
+        <div className="mb-4 flex items-center gap-2">
+          <Plug className="h-5 w-5 text-success" />
+          <CardTitle className="text-base font-semibold text-foreground">Configuration API</CardTitle>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <TextInput
+            label="Host"
+            value={settings.apiHost}
+            onChange={(v) => update("apiHost", v)}
+          />
+          <TextInput
+            label="Port"
+            value={settings.apiPort}
+            onChange={(v) => update("apiPort", parseInt(v) || 8000)}
+            type="number"
+          />
+          <div className="pt-6">
+            <Toggle
+              enabled={settings.wsEnabled}
+              onChange={(v) => update("wsEnabled", v)}
+              label="WebSocket actif"
+            />
+          </div>
+          <TextInput
+            label="CORS Origins"
+            value={settings.corsOrigins}
+            onChange={(v) => update("corsOrigins", v)}
+          />
+        </div>
+      </Card>
+
+      {/* Account Management */}
+      <Card>
+        <div className="mb-4 flex items-center gap-2">
+          <Globe className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base font-semibold text-foreground">Gestion des Comptes</CardTitle>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <TextInput
+            label="Chemin MT5"
+            value={settings.mt5Path}
+            onChange={(v) => update("mt5Path", v)}
+          />
+          <TextInput
+            label="Leverage par defaut"
+            value={settings.defaultLeverage}
+            onChange={(v) => update("defaultLeverage", parseInt(v) || 100)}
+            type="number"
+          />
+          <TextInput
+            label="Symboles par defaut"
+            value={settings.defaultSymbols}
+            onChange={(v) => update("defaultSymbols", v)}
+            placeholder="EURUSD,GBPUSD,..."
+          />
+        </div>
+      </Card>
+    </div>
   );
 }

@@ -1,19 +1,20 @@
 "use client";
-import { useState } from "react";
-import { api } from "@/lib/api";
+
+import { useState, FormEvent } from "react";
+import { login } from "@/lib/api";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
     try {
-      await api.login(email, password);
+      await login(username, password);
       window.location.href = "/";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erreur de connexion");
@@ -23,86 +24,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#070B14",
-      }}
-    >
-      <div className="card" style={{ width: 380, padding: 40 }}>
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 14,
-              background: "linear-gradient(135deg, #00D4FF, #0066FF)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 24,
-              fontWeight: 800,
-              color: "#fff",
-              marginBottom: 16,
-            }}
-          >
-            N
-          </div>
-          <div style={{ fontWeight: 700, fontSize: "1.4rem", color: "#E8EDF5" }}>NEXUS Trading</div>
-          <div style={{ fontSize: "0.85rem", color: "#6B7A9A", marginTop: 4 }}>
-            Connectez-vous à votre dashboard
-          </div>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: "0.8rem", color: "#6B7A9A", display: "block", marginBottom: 6 }}>
-              Email
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-8 shadow-lg">
+        <h1 className="mb-6 text-2xl font-bold text-foreground">Trading Bot</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
+              Identifiant
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@example.com"
-              style={{ width: "100%" }}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+              placeholder="admin"
               required
             />
           </div>
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ fontSize: "0.8rem", color: "#6B7A9A", display: "block", marginBottom: 6 }}>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-muted-foreground">
               Mot de passe
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              style={{ width: "100%" }}
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
               required
             />
           </div>
-          {error && (
-            <div
-              style={{
-                background: "rgba(255,68,102,0.1)",
-                border: "1px solid rgba(255,68,102,0.3)",
-                borderRadius: 8,
-                padding: "8px 12px",
-                color: "#FF4466",
-                fontSize: "0.85rem",
-                marginBottom: 16,
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <button
             type="submit"
-            className="btn-primary"
-            style={{ width: "100%", padding: "12px", fontSize: "0.95rem" }}
             disabled={loading}
+            className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
           >
             {loading ? "Connexion..." : "Se connecter"}
           </button>
