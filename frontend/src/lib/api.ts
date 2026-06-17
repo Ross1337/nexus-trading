@@ -1,4 +1,6 @@
-const API_BASE = "/api";
+const API_BASE = (typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_URL)
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+  : "/api";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -8,7 +10,7 @@ function getToken(): string | null {
 export function logout() {
   if (typeof window !== 'undefined') {
     // Best-effort call to backend to invalidate the HTTP-only cookie
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
     localStorage.removeItem('auth_token');
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     window.location.href = '/login';
@@ -42,7 +44,7 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
 }
 
 export async function login(email: string, password: string): Promise<void> {
-  const res = await fetch("/api/auth/login", {
+  const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
