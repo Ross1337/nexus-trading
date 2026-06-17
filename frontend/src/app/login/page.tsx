@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react";
 import { login } from "@/lib/api";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(username, password);
+      await login(email, password);
       window.location.href = "/";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erreur de connexion");
@@ -30,14 +30,14 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-muted-foreground">
-              Identifiant
+              Email
             </label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
-              placeholder="admin"
+              placeholder="admin@nexus.local"
               required
             />
           </div>

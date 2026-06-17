@@ -7,6 +7,8 @@ function getToken(): string | null {
 
 export function logout() {
   if (typeof window !== 'undefined') {
+    // Best-effort call to backend to invalidate the HTTP-only cookie
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
     localStorage.removeItem('auth_token');
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     window.location.href = '/login';
@@ -14,20 +16,20 @@ export function logout() {
 }
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
   const res = await fetch(`${API_BASE}${endpoint}`, {
     headers,
+    credentials: "include",
     ...options,
   });
 
   if (res.status === 401) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       window.dispatchEvent(new Event('auth:expired'));
     }
     throw new Error('Session expiree');
@@ -39,19 +41,25 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   return res.json();
 }
 
-export async function login(username: string, password: string): Promise<void> {
+export async function login(email: string, password: string): Promise<void> {
   const res = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
+    credentials: "include",
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Identifiants invalides");
   }
-  const data = await res.json();
-  localStorage.setItem("auth_token", data.access_token);
-  document.cookie = `auth_token=${data.access_token}; path=/; max-age=86400`;
+  // Backend NEXUS V2 sets an HTTP-only cookie 'access_token'.
+  // We mirror it as a non-HTTP-only 'auth_token' cookie so the Next.js
+  // middleware (which reads request.cookies.get('auth_token')) can detect the session.
+  // We also keep a localStorage flag for the auth-guard logic.
+  if (typeof window !== "undefined") {
+    localStorage.setItem("auth_token", "session");
+    document.cookie = `auth_token=session; path=/; max-age=86400; samesite=lax`;
+  }
 }
 
 // Types
