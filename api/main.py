@@ -28,6 +28,7 @@ from api.routers.webhook_logs import router as webhook_logs_router
 from api.routers.debug import router as debug_router
 from api.routers.telegram import router as telegram_router
 from api.routers.test_runner import router as test_runner_router
+from api.routers.v1_compat import router as v1_compat_router
 
 # Rate limiter: {ip: [(timestamp, count)]}
 _rate_limits: dict[str, list] = defaultdict(list)
@@ -126,6 +127,7 @@ app.include_router(webhook_logs_router)
 app.include_router(debug_router)
 app.include_router(telegram_router)
 app.include_router(test_runner_router)
+app.include_router(v1_compat_router)
 
 
 @app.get("/api/health")
